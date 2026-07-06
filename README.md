@@ -53,19 +53,31 @@ Paste a sample of your app's CLI or Streamlit output here so a reader can see wh
 
 ## 🧪 Testing PawPal+
 
-```bash
-# Run the full test suite:
-pytest
+To run the automated test suite, use the following command in your terminal:
 
-# Run with coverage:
-pytest --cov
-```
+Bash
+python -m pytest
 
-Sample test output:
+Our test suite covers the core algorithmic logic of the PawPal+ system, including:
 
-```
-# Paste your pytest output here
-```
+- Task Management: Recurrence logic (daily/weekly), completion state, and field preservation.
+- Scheduling: Chronological time sorting, priority sorting, and date-based task lookups.
+- Conflict Detection: Accurate flagging of hard and soft scheduling conflicts.
+- Data Integrity: Proper linking and aggregation across Owners, Pets, and Tasks.
+
+Test Output
+
+======================================================== test session starts ========================================================
+platform darwin -- Python 3.13.5, pytest-8.3.4, pluggy-1.5.0
+rootdir: /Users/amanuel/CodePath/AI110/Module_2/ai110-module2show-pawpal-starter
+plugins: anyio-4.7.0
+collected 37 items                                                                                                                  
+
+tests/test_pawpal.py .....................................                                                                   [100%]
+
+======================================================== 37 passed in 0.05s ========================================================
+
+Confidence Level: ★★★★★
 
 ## 📐 Smarter Scheduling
 
