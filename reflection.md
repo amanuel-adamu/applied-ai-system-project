@@ -46,7 +46,12 @@ I added a pet: Pet attribute to the Task class. In the initial design, a task ex
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+
+The conflict detection system checks only for exact start-time matches rather than calculating overlapping durations between tasks.
+
 - Why is that tradeoff reasonable for this scenario?
+
+For this project, an "exact-time" strategy serves as a lightweight, efficient approach that minimizes computational complexity while still catching the most common scheduling errors. Given the current scope, this provides immediate user feedback on double-bookings without the need for a more complex time-interval management system.
 
 ---
 

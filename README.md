@@ -73,10 +73,13 @@ Sample test output:
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | Scheduler.sort_by_time(), Scheduler.sort_tasks_by_priority() | Sorts by chronologically by time or by high/medium/low priority.|
+| Filtering | Scheduler.filter_by_status(), Scheduler.filter_by_pet_name()| Filters tasks based on current completion status or specific pet.|
+| Conflict handling | Scheduler.check_conflicts() | Detects both hard (same pet) and soft (double-booked owner) conflicts at exact time slots.|
+| Recurring tasks | Task.mark_complete(), Task.next_occurrence() | Automatically generates new pending instances for daily or weekly tasks upon completion.|
+
+
+
 
 ## 📸 Demo Walkthrough
 
