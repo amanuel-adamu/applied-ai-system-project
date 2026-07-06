@@ -14,12 +14,25 @@ The PawPal+ system is designed around three core user actions to ensure robust p
 **a. Initial design**
 
 - Briefly describe your initial UML design.
+
+The PawPal+ system follows an object-oriented design where an Owner manages multiple Pet objects, and a central Scheduler class handles the lifecycle and organization of Task objects. This modular approach separates pet data from task logic, allowing for efficient scheduling and status tracking.
+
 - What classes did you include, and what responsibilities did you assign to each?
+
+1. Owner: Acts as the primary user entity; responsible for managing the collection of Pet objects associated with their account. 
+2. Pet: Represents an individual pet; responsible for storing specific attributes like name and species and providing access to its own details. 
+3. Task: Represents a specific care activity; responsible for maintaining its own state (e.g., status, priority) and handling updates to its details.  
+4. Scheduler: Acts as the system's logic engine; responsible for maintaining the master list of tasks and executing filtering and sorting operations to generate daily plans.
 
 **b. Design changes**
 
 - Did your design change during implementation?
+
+Yes, the design was updated following an initial review to improve data relationships and robustness.
+
 - If yes, describe at least one change and why you made it.
+
+I added a pet: Pet attribute to the Task class. In the initial design, a task existed independently, which made it impossible to associate a specific activity (like a walk) with a specific pet. Adding this relationship is required to fulfill the core action of "scheduling a walk for a specific pet" and allows for efficient filtering of tasks by pet without parsing task titles. Additionally, I updated the return types of query methods (e.g., get_tasks_by_date) to return lists rather than None, ensuring the system can actually provide the data requested by the user.
 
 ---
 
