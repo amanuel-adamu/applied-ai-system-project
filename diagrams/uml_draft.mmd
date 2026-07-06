@@ -1,0 +1,35 @@
+classDiagram
+    class Owner {
+        +String name
+        +List~Pet~ pets
+        +add_pet(pet)
+        +view_all_pets()
+    }
+
+    class Pet {
+        +String name
+        +String species
+        +Owner owner
+        +get_details()
+    }
+
+    class Task {
+        +String title
+        +String description
+        +Date due_date
+        +String priority
+        +String status
+        +mark_complete()
+        +update_priority(new_priority)
+    }
+
+    class Scheduler {
+        +List~Task~ tasks
+        +add_task(task)
+        +get_tasks_by_date(date)
+        +sort_tasks_by_priority()
+    }
+
+    Owner "1" --> "*" Pet : has many
+    Pet "*" --> "1" Owner : belongs to
+    Scheduler "1" o-- "*" Task : manages

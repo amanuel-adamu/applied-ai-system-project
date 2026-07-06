@@ -2,6 +2,15 @@
 
 ## 1. System Design
 
+The PawPal+ system is designed around three core user actions to ensure robust pet care management:
+
+1. Add a Pet: This action enables the user to initialize a new Pet object, establishing the primary entity for which all care tasks will be tracked and organized.
+
+2. Schedule a Walk: This functionality allows for the creation of specific Task instances, enabling users to define the nature, timing, and priority of essential pet activities.
+
+3. See Today's Tasks: This action triggers the system's scheduling logic to filter and display all active tasks for the current date, providing the user with an actionable daily care plan.
+
+
 **a. Initial design**
 
 - Briefly describe your initial UML design.
