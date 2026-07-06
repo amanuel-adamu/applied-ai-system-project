@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import List
 
+
 # Ordering used to sort tasks by priority (lower value = higher priority).
 # Unknown priorities sort last.
 PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}

@@ -22,6 +22,45 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## ✨ Features
+
+PawPal+ implements the following scheduling logic in [`pawpal_system.py`](pawpal_system.py):
+
+- **Chronological sorting** — `Scheduler.sort_by_time()` returns tasks ordered
+  earliest-first by their `HH:MM` time of day. Zero-padded 24-hour strings
+  compare correctly as plain text, so no time parsing is required. The original
+  task list is left unmodified (a new sorted list is returned).
+
+- **Priority sorting** — `Scheduler.sort_tasks_by_priority()` orders tasks
+  `high → medium → low` using a `PRIORITY_ORDER` lookup. Matching is
+  case-insensitive, and any unrecognized priority sorts last, so unexpected
+  values never break the ordering.
+
+- **Conflict detection (hard & soft)** — `Scheduler.check_conflicts()` groups all
+  pending tasks into `(date, time)` slots and reports two collision types:
+  - **Hard conflict** — the *same pet* has more than one task in a slot
+    (physically impossible).
+  - **Soft conflict** — two or more *different pets* share a slot, meaning the
+    owner is double-booked.
+
+  Completed tasks are ignored, and a single slot can raise both warning types
+  independently. Detection is by exact time match.
+
+- **Daily / weekly recurrence** — completing a recurring task with
+  `Task.mark_complete()` automatically spawns its next occurrence via
+  `Task.next_occurrence()`, which advances the due date by `interval` days
+  (daily) or `interval` weeks (weekly) and resets the new task to `pending`.
+  One-off tasks (`recurrence="none"`) simply complete with no follow-up.
+
+- **Task filtering** — `Scheduler.filter_by_status()` returns tasks matching a
+  given status (e.g. `pending`, `completed`), and `Scheduler.filter_by_pet_name()`
+  narrows the list to a single pet. `Scheduler.get_tasks_by_date()` retrieves all
+  tasks due on a specific date.
+
+- **Owner / pet aggregation** — `Owner`, `Pet`, and `Task` maintain synchronized
+  back-references, and `Scheduler.add_tasks_from_owner()` pulls every task across
+  all of an owner's pets into a single schedule for planning.
+
 ## Getting started
 
 ### Setup
@@ -95,12 +134,30 @@ Confidence Level: ★★★★★
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+1. Register the Household: Start by entering the owner's name and adding pets to the household; once set, the owner profile is locked to maintain a consistent session.  
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+2. Assign Care Tasks: Create specific care tasks for your pets by defining the task title, duration, and priority level, then assign each task to a registered pet at your preferred time.  
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+3. Generate the Schedule: Click the "Generate schedule" button to compile your daily plan, which triggers the backend scheduler to analyze all assigned tasks.  
+
+4. View and Reorder: Review your daily schedule and use the "Sort tasks by" dropdown to dynamically toggle the view between chronological order and priority level.  
+
+5. Monitor Conflicts: Use the conflict detection feature to receive instant alerts if the scheduler identifies any overlapping tasks or scheduling issues for your pets.  
+
+Key Scheduler Behaviors
+
+- Conflict Detection: Automatically identifies and reports "Hard conflicts" when a pet is assigned multiple tasks at the same time.  
+
+- Dynamic Sorting: Allows instant re-ordering of tasks by time or priority without requiring a page reload. 
+
+Sample CLI Output
+
+$ python main.py
+[System] Initializing PawPal+ Backend...
+[Action] Added 'Morning walk' for Mochi at 09:00.
+[Action] Added 'Noon walk' for Mochi at 12:00.
+[Action] Added 'Dawn Walk' for Petty at 06:00.
+[Scheduler] Checking for conflicts...
+[Status] Schedule is clear. No conflicts detected.
+
+[![Watch the Demo Walkthrough](images/demo_thumbnail.png)](https://drive.google.com/file/d/1nqCEq9c1AbWetSA58jeeeCr_L2ElHw-c/view?usp=sharing)
