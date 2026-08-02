@@ -1,0 +1,41 @@
+graph TD
+    %% User Interfaces
+    User([Pet Owner]) -->|Natural Language Prompt| StreamlitUI[Streamlit Web App / CLI]
+    User -->|Manual Task Entry| StreamlitUI
+
+    %% AI Agent Workflow & Guardrails
+    subgraph AI Agent Layer [ai_agent.py]
+        StreamlitUI -->|Raw Prompt| Agent[PawPal AI Agent]
+        Agent -->|Decompose & Plan| LLM[LLM Planning Engine]
+        LLM -->|Raw Task JSON| Guardrails[Validation Guardrails]
+        
+        subgraph Guardrails & Rules
+            Guardrails -->|Check Time Format HH:MM| Check1{Valid Time?}
+            Guardrails -->|Validate Priority Level| Check2{Valid Priority?}
+            Check1 -->|Invalid| FixTime[Default to 09:00 & Log Warning]
+            Check2 -->|Invalid| FixPriority[Default to Medium & Log Warning]
+        end
+    end
+
+    %% Data Model & Logic
+    subgraph System Logic Layer [pawpal_system.py]
+        Check1 -->|Valid| TaskObj[Task Objects]
+        Check2 -->|Valid| TaskObj
+        FixTime --> TaskObj
+        FixPriority --> TaskObj
+
+        TaskObj -->|Add Task| PetClass[Pet Model]
+        PetClass -->|Registered under| OwnerClass[Owner Model]
+        OwnerClass -->|Retrieve Tasks| Scheduler[Scheduler Engine]
+
+        subgraph Scheduler Logic
+            Scheduler --> Sort[Chronological Sorting]
+            Scheduler --> Filter[Status/Pet Filtering]
+            Scheduler --> Conflict[Conflict Detection Engine]
+        end
+    end
+
+    %% Human Review / Output
+    Conflict -->|Flag Hard/Soft Warnings| StreamlitUI
+    Sort -->|Render Schedule| StreamlitUI
+    StreamlitUI -->|Review & Confirm Schedule| User
