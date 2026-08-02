@@ -1,5 +1,6 @@
 import streamlit as st
 from pawpal_system import Owner, Pet, Task, Scheduler
+from ai_agent import PawPalAgent
 from datetime import date, time
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
@@ -8,150 +9,120 @@ st.title("🐾 PawPal+")
 
 st.markdown(
     """
-Welcome to the PawPal+ starter app.
-
-This file is intentionally thin. It gives you a working Streamlit app so you can start quickly,
-but **it does not implement the project logic**. Your job is to design the system and build it.
-
-Use this app as your interactive demo once your backend classes/functions exist.
+Welcome to **PawPal+**! Track daily pet routines and leverage an intelligent AI agent
+to auto-generate routines, detect scheduling conflicts, and prioritize tasks.
 """
 )
 
-with st.expander("Scenario", expanded=True):
-    st.markdown(
-        """
-**PawPal+** is a pet care planning assistant. It helps a pet owner plan care tasks
-for their pet(s) based on constraints like time, priority, and preferences.
-
-You will design and implement the scheduling logic and connect it to this Streamlit UI.
-"""
-    )
-
-with st.expander("What you need to build", expanded=True):
-    st.markdown(
-        """
-At minimum, your system should:
-- Represent pet care tasks (what needs to happen, how long it takes, priority)
-- Represent the pet and the owner (basic info and preferences)
-- Build a plan/schedule for a day that chooses and orders tasks based on constraints
-- Explain the plan (why each task was chosen and when it happens)
-"""
-    )
-
 st.divider()
 
-st.subheader("Quick Demo Inputs (UI only)")
+st.subheader("1. Household & Pets")
 
-# 1. Determine if the owner is already in session_state
-owner_exists = "owner" in st.session_state
-
-# 2. Use the 'disabled' parameter to lock the input if the owner exists
-owner_name = st.text_input("Owner name", value="Enter your name", disabled=owner_exists)
-
-pet_name = st.text_input("Pet name", value="Pet's name")
-species = st.selectbox("Species", ["dog", "cat", "other"])
-
-# --- Persist the Owner across reruns ---
-if not owner_exists:
-    st.session_state.owner = Owner(name=owner_name)
+# Manage owner in session_state
+if "owner" not in st.session_state:
+    st.session_state.owner = Owner(name="Alex")
 
 owner = st.session_state.owner
 
+col_a, col_b = st.columns(2)
+with col_a:
+    pet_name = st.text_input("Pet name", value="Buddy")
+with col_b:
+    species = st.selectbox("Species", ["dog", "cat", "other"])
 
-if st.button("Add pet"):
-    # Check if a pet with this name already exists
-    if any(p.name == pet_name for p in owner.pets):
+if st.button("Add Pet"):
+    if any(p.name == pet_name for p in owner.view_all_pets()):
         st.warning(f"{pet_name} is already in the household!")
     else:
         owner.add_pet(Pet(name=pet_name, species=species, owner=owner))
-        st.success(f"Added {pet_name} ({species}) to {owner.name}'s household.")
-        st.rerun() # Refresh to update the table immediately
+        st.success(f"Added {pet_name} ({species}) to household.")
+        st.rerun()
 
-# Reflect the current pets in the UI (reads from the persisted Owner).
 pets = owner.view_all_pets()
 if pets:
-    st.write("Pets in this household:")
-    st.table(
-        [{"Name": p.name, "Species": p.species, "Tasks": len(p.tasks)} for p in pets]
-    )
+    st.table([{"Name": p.name, "Species": p.species, "Tasks": len(p.tasks)} for p in pets])
 else:
-    st.info("No pets yet. Add one above.")
+    st.info("No pets added yet. Add a pet above.")
 
+st.divider()
 
-st.markdown("### Tasks")
-st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
+st.subheader("2.🤖 AI Agent Routine Assistant")
+st.caption("Describe care needs (e.g., 'Buddy needs morning allergy medication and an evening walk') and the AI will auto-create validated tasks.")
+
+if pets:
+    selected_agent_pet = st.selectbox("Select Pet for AI Planning:", [p.name for p in pets], key="agent_pet")
+    ai_prompt = st.text_area("Care Prompt:", value=f"Buddy needs morning meds and a vet appointment")
+
+    if st.button("🤖 Generate Tasks with AI Agent"):
+        agent = PawPalAgent()
+        target_pet = next(p for p in pets if p.name == selected_agent_pet)
+        created_tasks = agent.parse_prompt_to_tasks(ai_prompt, target_pet)
+        
+        for t in created_tasks:
+            target_pet.add_task(t)
+            
+        st.success(f"AI Agent generated and validated {len(created_tasks)} tasks for {target_pet.name}!")
+        st.rerun()
+else:
+    st.warning("Please add at least one pet to use the AI Agent.")
+
+st.divider()
+
+st.subheader("3. Manual Task Entry")
 
 if "tasks" not in st.session_state:
     st.session_state.tasks = []
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    task_title = st.text_input("Task title", value="Morning walk")
+    task_title = st.text_input("Task title", value="Morning Feeding")
 with col2:
-    duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
+    priority = st.selectbox("Priority", ["low", "medium", "high"], index=1)
 with col3:
-    priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
+    task_time = st.time_input("Task time", value=time(9, 0))
 
-# 1. Add a dropdown for pet selection
 pet_names = [p.name for p in owner.view_all_pets()]
-selected_pet_name = st.selectbox("Assign task to:", pet_names)
+if pet_names:
+    selected_pet_name = st.selectbox("Assign task to:", pet_names, key="manual_pet")
 
-# 2. Logic for "Add task" button
-task_time = st.time_input("Task time", value=time(9, 0))
+    if st.button("Add Manual Task"):
+        target_pet = next(p for p in owner.view_all_pets() if p.name == selected_pet_name)
+        new_task = Task(
+            title=task_title,
+            description="Manual task",
+            due_date=date.today(),
+            priority=priority,
+            status="pending",
+            pet=target_pet,
+            time=task_time.strftime("%H:%M")
+        )
+        target_pet.add_task(new_task)
+        st.success(f"Added task '{task_title}' to {target_pet.name}.")
+        st.rerun()
 
-if st.button("Add task"):
-    target_pet = next(p for p in owner.view_all_pets() if p.name == selected_pet_name)
-    
-    new_task = Task(
-        title=task_title,
-        description="Automatic task",
-        due_date=date.today(),
-        priority=priority,
-        status="pending",
-        pet=target_pet,
-        time=task_time.strftime("%H:%M") # Converts user input to a string
-    )
-    target_pet.add_task(new_task)
-    st.success(f"Added task '{task_title}' to {target_pet.name}.")
-    st.rerun()
-
-
-    
-st.markdown("### Current tasks")
-# Get all tasks from all pets owned by the owner
+st.markdown("### Current Registered Tasks")
 all_tasks = owner.get_all_tasks() 
-
 if all_tasks:
-    st.table(
-        [{"Title": t.title, "Pet": t.pet.name, "Priority": t.priority} for t in all_tasks]
-    )
+    st.table([{"Title": t.title, "Pet": t.pet.name, "Time": t.time, "Priority": t.priority} for t in all_tasks])
 else:
-    st.info("No tasks yet. Add one above.")
+    st.info("No tasks registered.")
 
 st.divider()
 
-st.divider()
-
-
-# Initialize the scheduler if it doesn't already exist
+# Scheduler Initialization
 if "scheduler" not in st.session_state:
     st.session_state.scheduler = Scheduler()
 
-# Initialize the flag in session state
 if "show_schedule" not in st.session_state:
     st.session_state.show_schedule = False
 
-st.subheader("Build Schedule")
+st.subheader("4. Build & Verify Schedule")
 
-# Now it is safe to reference st.session_state.scheduler here
-if st.button("Generate schedule"):
+if st.button("Generate Schedule"):
     st.session_state.show_schedule = True
     st.session_state.scheduler.tasks = owner.get_all_tasks()
 
-# Use the flag to display the schedule consistently, 
-# regardless of button clicks or dropdown changes
 if st.session_state.show_schedule:
-    # --- Conflict Detection Section ---
     st.subheader("Scheduling Conflicts")
     conflicts = st.session_state.scheduler.check_conflicts()
     if conflicts:
@@ -160,9 +131,6 @@ if st.session_state.show_schedule:
     else:
         st.success("Your schedule is clear! No conflicts detected.")
 
-    st.divider()
-
-    # --- Sorting and Display Section ---
     st.subheader("Final Schedule")
     sort_option = st.selectbox("Sort tasks by:", ["Time", "Priority"])
     
@@ -172,9 +140,6 @@ if st.session_state.show_schedule:
         tasks_to_display = st.session_state.scheduler.sort_tasks_by_priority()
         
     if tasks_to_display:
-        st.table([
-            {"Title": t.title, "Pet": t.pet.name, "Time": t.time, "Priority": t.priority} 
-            for t in tasks_to_display
-        ])
+        st.table([{"Title": t.title, "Pet": t.pet.name, "Time": t.time, "Priority": t.priority} for t in tasks_to_display])
     else:
         st.write("No tasks found to display.")
