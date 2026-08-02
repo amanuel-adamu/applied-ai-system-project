@@ -142,6 +142,17 @@ Below is a structured evaluation of natural language test cases run through the 
 
 ---
 
+## 🧪 System Evaluation & Test Harness (`eval.py`)
+
+To continuously evaluate system reliability, prompt adherence, and guardrail enforcement, PawPal+ includes an automated evaluation harness script (`eval.py`).
+
+### Running the Evaluation Benchmarks
+Run the evaluation suite directly from the project root:
+
+```bash
+python3 eval.py
+
+
 ## 💡 Reflection
 
 Building PawPal+ demonstrated the critical balance between stochastic AI generation and deterministic system logic. While generative models are excellent at interpreting human language, downstream applications require predictable, verified data structures. Implementing clear guardrails and logging between the AI agent and the core scheduling engine ensured the application remained robust, reliable, and trustworthy.
